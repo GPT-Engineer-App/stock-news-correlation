@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -8,23 +9,42 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
-// Mock data for demonstration
-const mockStocks = [
-  { symbol: "AAPL", name: "Apple Inc.", price: 150.25, change: 2.5 },
-  { symbol: "GOOGL", name: "Alphabet Inc.", price: 2750.80, change: -1.2 },
-  { symbol: "MSFT", name: "Microsoft Corporation", price: 305.15, change: 0.8 },
-  { symbol: "AMZN", name: "Amazon.com, Inc.", price: 3380.50, change: 1.5 },
-];
+const fetchStocks = async () => {
+  const response = await fetch('/api/stocks');
+  if (!response.ok) {
+    throw new Error('Failed to fetch stocks');
+  }
+  return response.json();
+};
 
 const Stocks = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const { data: stocks, isLoading, error } = useQuery({
+    queryKey: ['stocks'],
+    queryFn: fetchStocks,
+  });
 
-  const filteredStocks = mockStocks.filter(
+  const filteredStocks = stocks?.filter(
     (stock) =>
       stock.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      stock.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+      stock.longName.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
+
+  if (error) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>
+          Failed to fetch stock data. Please try again later.
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   return (
     <div className="container mx-auto p-4">
@@ -46,17 +66,28 @@ const Stocks = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredStocks.map((stock) => (
-            <TableRow key={stock.symbol}>
-              <TableCell className="font-medium">{stock.symbol}</TableCell>
-              <TableCell>{stock.name}</TableCell>
-              <TableCell>${stock.price.toFixed(2)}</TableCell>
-              <TableCell className={stock.change >= 0 ? "text-green-600" : "text-red-600"}>
-                {stock.change > 0 ? "+" : ""}
-                {stock.change.toFixed(2)}%
-              </TableCell>
-            </TableRow>
-          ))}
+          {isLoading ? (
+            Array(5).fill(0).map((_, index) => (
+              <TableRow key={index}>
+                <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                <TableCell><Skeleton className="h-4 w-40" /></TableCell>
+                <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+              </TableRow>
+            ))
+          ) : (
+            filteredStocks.map((stock) => (
+              <TableRow key={stock.symbol}>
+                <TableCell className="font-medium">{stock.symbol}</TableCell>
+                <TableCell>{stock.longName}</TableCell>
+                <TableCell>${stock.regularMarketPrice.toFixed(2)}</TableCell>
+                <TableCell className={stock.regularMarketChangePercent >= 0 ? "text-green-600" : "text-red-600"}>
+                  {stock.regularMarketChangePercent > 0 ? "+" : ""}
+                  {stock.regularMarketChangePercent.toFixed(2)}%
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
     </div>
