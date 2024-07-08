@@ -1,38 +1,53 @@
-# stock-news-correlation
+# Stock News Correlator
 
-I'd like to build a web application that takes in stock and news data from openBB and newsapi. The app then shows the top correlations between news stories and changes in stock price as they are happening.
-
-## Collaborate with GPT Engineer
-
-This is a [gptengineer.app](https://gptengineer.app)-synced repository 🌟🤖
-
-Changes made via gptengineer.app will be committed to this repo.
-
-If you clone this repo and push changes, you will have them reflected in the GPT Engineer UI.
-
-## Tech stack
-
-This project is built with .
-
-- Vite
-- React
-- shadcn-ui
-- Tailwind CSS
+This project integrates stock data from OpenBB and displays it in a React frontend.
 
 ## Setup
 
-```sh
-git clone https://github.com/GPT-Engineer-App/stock-news-correlation.git
-cd stock-news-correlation
-npm i
-```
+### Frontend
 
-```sh
-npm run dev
-```
+1. Install dependencies:
+   ```
+   npm install
+   ```
 
-This will run a dev server with auto reloading and an instant preview.
+2. Start the development server:
+   ```
+   npm run dev
+   ```
 
-## Requirements
+### Backend
 
-- Node.js & npm - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+1. Navigate to the `api` directory:
+   ```
+   cd api
+   ```
+
+2. Create a virtual environment:
+   ```
+   python -m venv venv
+   ```
+
+3. Activate the virtual environment:
+   - On Windows:
+     ```
+     venv\Scripts\activate
+     ```
+   - On macOS and Linux:
+     ```
+     source venv/bin/activate
+     ```
+
+4. Install the required Python packages:
+   ```
+   pip install -r requirements.txt
+   ```
+
+5. Start the Flask server:
+   ```
+   python app.py
+   ```
+
+## Usage
+
+Once both the frontend and backend servers are running, you can access the application at `http://localhost:5173`. The Stocks page will display real-time stock data fetched from the OpenBB API.
