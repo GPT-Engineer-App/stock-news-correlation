@@ -15,9 +15,14 @@ import { AlertCircle } from "lucide-react";
 
 const fetchStocks = async () => {
   try {
-    const response = await fetch('https://api.openbb.co/v1/stocks/market/top-gainers');
+    // Updated API endpoint
+    const response = await fetch('https://api.openbb.co/api/v1/stocks/market/top-gainers', {
+      headers: {
+        'Authorization': `Bearer ${import.meta.env.VITE_OPENBB_API_KEY}`
+      }
+    });
     if (!response.ok) {
-      throw new Error('Failed to fetch stocks');
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
     return data.data;
@@ -32,6 +37,8 @@ const Stocks = () => {
   const { data: stocks, isLoading, error } = useQuery({
     queryKey: ['stocks'],
     queryFn: fetchStocks,
+    retry: 3,
+    retryDelay: 1000,
   });
 
   const filteredStocks = stocks?.filter(
@@ -46,7 +53,7 @@ const Stocks = () => {
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Error</AlertTitle>
         <AlertDescription>
-          Failed to fetch stock data. Please try again later.
+          Failed to fetch stock data. Please try again later. Error: {error.message}
         </AlertDescription>
       </Alert>
     );
@@ -87,8 +94,8 @@ const Stocks = () => {
                 <TableCell className="font-medium">{stock.symbol}</TableCell>
                 <TableCell>{stock.name}</TableCell>
                 <TableCell>${stock.price.toFixed(2)}</TableCell>
-                <TableCell className="text-green-600">
-                  +{stock.change_percentage.toFixed(2)}%
+                <TableCell className={stock.change_percentage >= 0 ? "text-green-600" : "text-red-600"}>
+                  {stock.change_percentage >= 0 ? "+" : ""}{stock.change_percentage.toFixed(2)}%
                 </TableCell>
               </TableRow>
             ))
