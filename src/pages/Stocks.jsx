@@ -14,11 +14,17 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 
 const fetchStocks = async () => {
-  const response = await fetch('/api/stocks');
-  if (!response.ok) {
-    throw new Error('Failed to fetch stocks');
+  try {
+    const response = await fetch('https://api.openbb.co/v1/stocks/market/top-gainers');
+    if (!response.ok) {
+      throw new Error('Failed to fetch stocks');
+    }
+    const data = await response.json();
+    return data.data;
+  } catch (error) {
+    console.error('Error fetching stocks:', error);
+    throw error;
   }
-  return response.json();
 };
 
 const Stocks = () => {
@@ -31,7 +37,7 @@ const Stocks = () => {
   const filteredStocks = stocks?.filter(
     (stock) =>
       stock.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      stock.longName.toLowerCase().includes(searchTerm.toLowerCase())
+      stock.name.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
   if (error) {
@@ -48,7 +54,7 @@ const Stocks = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6">Stocks</h1>
+      <h1 className="text-3xl font-bold mb-6">Top Gaining Stocks</h1>
       <Input
         type="text"
         placeholder="Search stocks..."
@@ -79,11 +85,10 @@ const Stocks = () => {
             filteredStocks.map((stock) => (
               <TableRow key={stock.symbol}>
                 <TableCell className="font-medium">{stock.symbol}</TableCell>
-                <TableCell>{stock.longName}</TableCell>
-                <TableCell>${stock.regularMarketPrice.toFixed(2)}</TableCell>
-                <TableCell className={stock.regularMarketChangePercent >= 0 ? "text-green-600" : "text-red-600"}>
-                  {stock.regularMarketChangePercent > 0 ? "+" : ""}
-                  {stock.regularMarketChangePercent.toFixed(2)}%
+                <TableCell>{stock.name}</TableCell>
+                <TableCell>${stock.price.toFixed(2)}</TableCell>
+                <TableCell className="text-green-600">
+                  +{stock.change_percentage.toFixed(2)}%
                 </TableCell>
               </TableRow>
             ))
